@@ -1,0 +1,23 @@
+[GLOBAL]
+pants_version = "2.13.0"
+pythonpath = ["%(buildroot)s/pants-plugins"]
+use_deprecated_directory_cli_args_semantics = false
+backend_packages = [
+  "pants.backend.python",
+  "pants.backend.python.lint.black",
+  "pants.backend.plugin_development",
+  "yamllint",
+]
+
+[anonymous-telemetry]
+enabled = false
+
+[python]
+tailor_pex_binary_targets = false
+
+[source]
+root_patterns = [
+  "test",
+]
+
+[yamllint]
