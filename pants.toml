@@ -21,3 +21,4 @@ root_patterns = [
 ]
 
 [yamllint]
+args = [ "-d", "relaxed" ]

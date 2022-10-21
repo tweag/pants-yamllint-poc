@@ -4,7 +4,7 @@ from pants.core.goals.lint import LintTargetsRequest, LintResult, LintResults
 from pants.engine.rules import collect_rules, rule, Get, MultiGet
 from pants.engine.fs import Digest, MergeDigests
 from pants.engine.target import Dependencies, FieldSet
-from pants.option.option_types import StrOption, SkipOption
+from pants.option.option_types import ArgsListOption, StrOption, SkipOption
 from pants.util.logging import LogLevel
 from pants.core.util_rules.source_files import SourceFiles, SourceFilesRequest
 from pants.engine.process import FallibleProcessResult, Process
@@ -45,6 +45,8 @@ class Yamllint(PythonToolBase):
         advanced=True,
         help="yamllint config file",
     )
+
+    args = ArgsListOption(example="-d relaxed")
 
     skip = SkipOption("lint")
 
@@ -91,7 +93,7 @@ async def run_yamllint(request: YamllintRequest, yamllint: Yamllint) -> LintResu
         FallibleProcessResult,
         PexProcess(
             yamllint_bin,
-            argv=[*sources.snapshot.files],
+            argv=[*yamllint.args, *sources.snapshot.files],
             input_digest=input_digest,
             description=f"Run yamllint on {pluralize(len(request.field_sets), 'file')}.",
             level=LogLevel.DEBUG,
