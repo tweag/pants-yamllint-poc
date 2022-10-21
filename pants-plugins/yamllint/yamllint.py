@@ -4,9 +4,10 @@ from pants.core.goals.lint import LintTargetsRequest, LintResult, LintResults
 from pants.engine.rules import collect_rules, rule, Get, MultiGet
 from pants.engine.fs import Digest, MergeDigests
 from pants.engine.target import Dependencies, FieldSet
-from pants.option.option_types import ArgsListOption, StrOption, SkipOption
+from pants.option.option_types import ArgsListOption, StrOption, SkipOption, BoolOption
 from pants.util.logging import LogLevel
 from pants.core.util_rules.source_files import SourceFiles, SourceFilesRequest
+from pants.core.util_rules.config_files import ConfigFilesRequest, ConfigFiles
 from pants.engine.process import FallibleProcessResult, Process
 from pants.engine.unions import UnionRule
 from pants.backend.python.util_rules.pex import (
@@ -15,14 +16,15 @@ from pants.backend.python.util_rules.pex import (
     PexRequest,
     PexRequirements,
 )
-from pants.util.strutil import pluralize
+from pants.util.strutil import pluralize, softwrap
 
 from yamllint.target_types import YamlSourceField
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Iterable
 
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +51,19 @@ class Yamllint(PythonToolBase):
     args = ArgsListOption(example="-d relaxed")
 
     skip = SkipOption("lint")
+
+    def config_request(self) -> ConfigFilesRequest:
+        candidates = [
+            ".yamllint",
+            ".yamllint.yaml",
+            ".yamllint.yml",
+        ]
+        return ConfigFilesRequest(
+            specified=self.config,
+            specified_option_name="[yamllint].config",
+            discovery=True,
+            check_existence=candidates,
+        )
 
 
 @dataclass(frozen=True)
@@ -79,12 +94,15 @@ async def run_yamllint(request: YamllintRequest, yamllint: Yamllint) -> LintResu
 
     sources, yamllint_bin = await MultiGet(sources_get, yamllint_bin_get)
 
+    config_files = await Get(ConfigFiles, ConfigFilesRequest, yamllint.config_request())
+
     input_digest = await Get(
         Digest,
         MergeDigests(
             (
                 sources.snapshot.digest,
                 yamllint_bin.digest,
+                config_files.snapshot.digest,
             )
         ),
     )
@@ -93,7 +111,11 @@ async def run_yamllint(request: YamllintRequest, yamllint: Yamllint) -> LintResu
         FallibleProcessResult,
         PexProcess(
             yamllint_bin,
-            argv=[*yamllint.args, *sources.snapshot.files],
+            argv=(
+                *(("-c", yamllint.config) if yamllint.config else ()),
+                *yamllint.args,
+                *sources.snapshot.files,
+            ),
             input_digest=input_digest,
             description=f"Run yamllint on {pluralize(len(request.field_sets), 'file')}.",
             level=LogLevel.DEBUG,

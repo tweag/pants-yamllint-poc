@@ -21,4 +21,4 @@ root_patterns = [
 ]
 
 [yamllint]
-args = [ "-d", "relaxed" ]
+config = "yamllint.yaml"
