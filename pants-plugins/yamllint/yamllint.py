@@ -23,10 +23,7 @@ from yamllint.target_types import YamlSourceField
 from dataclasses import dataclass
 from typing import Any, Iterable
 
-import logging
 import os
-
-logger = logging.getLogger(__name__)
 
 
 class Yamllint(PythonToolBase):
