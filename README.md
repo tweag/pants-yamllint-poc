@@ -6,12 +6,10 @@ Just add `yaml_source(source = '...')` or `yaml_sources()` rules to your `BUILD`
 ```
 ./pants lint ::
 ```
-to lint all files in the repository.
+to lint all files in the repository. Configuration for `yamllint` can be autodetected as `.yamllint`, `.yamllint.yaml` or `.yamllint.yaml` files or specified explicitly with the `config` key in `pants.toml`.
 
 # What's missing?
 - There are no `tailor` rules to make `pants` automatically add `yaml_sources()` rules.
-- The plugin claims to support specifying a `yamllint` configuration file but actually doesn't yet.
-- As a corollary, there is no autodiscovery of `yamllint` configuration yet.
 
 # Who's to blame?
-Viktor! But most of the code is very similar to the `shellcheck` linter in core `pants`.
+@vkleen! But most of the code is very similar to the `shellcheck` linter in core `pants`.
