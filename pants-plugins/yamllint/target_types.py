@@ -1,24 +1,28 @@
-from pants.engine.rules import collect_rules
+# Copyright 2022 Pants project contributors (see CONTRIBUTORS.md).
+# Licensed under the Apache License, Version 2.0 (see LICENSE).
 from pants.engine.target import (
-    SingleSourceField,
+    COMMON_TARGET_FIELDS,
     MultipleSourcesField,
+    SingleSourceField,
     Target,
     TargetFilesGenerator,
-    COMMON_TARGET_FIELDS,
     generate_multiple_sources_field_help_message,
 )
 
 
 class YamlSourceField(SingleSourceField):
-    expected_file_extensions = (".yaml",)
+    expected_file_extensions = (".yaml", ".yml")
     uses_source_roots = False
 
 
 class YamlSourcesGeneratingSourcesField(MultipleSourcesField):
     uses_source_roots = False
-    default = ("*.yaml",)
+    default = (
+        "*.yaml",
+        "*.yml",
+    )
     help = generate_multiple_sources_field_help_message(
-        "Example: `sources=['example.yaml', 'examples_*.yaml', '!ignore_me.yaml']`"
+        "Example: `sources=['example.yaml', 'example.yml', 'examples_*.yaml', '!ignore_me.yaml']`"
     )
 
 
